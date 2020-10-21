@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
  const Home = () => {
   return (
     <div>
-        home2
+        mod-a
     </div>
 
   )

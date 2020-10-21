@@ -5,17 +5,20 @@ process.env.NODE_ENV = 'production';
 const {
   resolve
 } = require('./utils')
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 const generateModConfig = mod => {
+  const allEntries = {
+    'ModuleA': resolve(`src/routes/App/children/ModuleA/index.js`),
+    'ModuleB': resolve(`src/routes/App/children/ModuleB/index.js`)
+  }
+
   const webpackConfig = {
     mode: 'production',
-    entry: resolve(`src/modules/${mod}/index.js`),
+    entry: mod === 'all' ? allEntries : { [mod] : allEntries[mod] },
     output: {
-      path: resolve(`build/modules/${mod}`),
-      publicPath: `/modules/${mod}/`,
-      filename: `${mod}.js`,
+      path: resolve(`build/modules/`),
       chunkFilename: '[name].[contentHash:5].chunk.js',
-      library: `_${mod}`,
       libraryTarget: 'umd'
     },
     module: {
@@ -31,9 +34,7 @@ const generateModConfig = mod => {
     },
     resolve: {
       alias: {
-        '@': resolve('src'),
-        '@mod-a': resolve('src/modules/mod-a'),
-        '@mod-b': resolve('src/modules/mod-b')
+        '@': resolve('src')
       }
     },
     optimization: {
@@ -42,8 +43,26 @@ const generateModConfig = mod => {
 
     },
     plugins: [
+      new BundleAnalyzerPlugin(),
+    ],
+    optimization: {
+      splitChunks: {
+        chunks: 'initial',
+        minSize: 2000,
+        cacheGroups: {
+          defaultVendors: {
+            test: /[\\/]node_modules[\\/]/,
+            priority: -10
+          },
+          default: {
+            minChunks: 2,
+            priority: -20,
+            reuseExistingChunk: true
+          }
+        }
+      }
+    }
 
-    ]
   }
   return webpackConfig
 }
